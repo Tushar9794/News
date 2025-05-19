@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News App</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            width: 70%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background: #ff5722;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .news-container {
+            margin-top: 20px;
+        }
+        .news-card {
+            background: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        .news-card h3 {
+            margin: 0 0 10px;
+            color: #333;
+        }
+        .news-card p {
+            color: #666;
+        }
+        .news-card a {
+            display: block;
+            margin-top: 10px;
+            color: #ff5722;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .loading {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #666;
+        }
+        .error {
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Latest News</h1>
+        <input type="text" id="location" placeholder="Enter location...">
+        <button onclick="fetchNews()">Get News</button>
+        <button onclick="clearResults()">Clear Results</button>
+        <div class="loading" id="loading" style="display: none;">Loading...</div>
+        <div class="error" id="error" style="display: none;"></div>
+        <div class="news-container" id="newsContainer"></div>
+    </div>
+    
+    <script>
+        document.getElementById("location").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                fetchNews();
+            }
+        });
+
+        function fetchNews() {
+            const location = document.getElementById("location").value;
+            const loading = document.getElementById("loading");
+            const error = document.getElementById("error");
+            const newsContainer = document.getElementById("newsContainer");
+
+            if (!location) {
+                alert("Please enter a location");
+                return;
+            }
+
+            loading.style.display = "block";
+            error.style.display = "none";
+            newsContainer.innerHTML = "";
+
+            const apiKey = "52a1a091c3eb40e1b9c37b1cbcb7c64d";
+            const url = `https://newsapi.org/v2/everything?q=${location}&apiKey=${apiKey}`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch news");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    loading.style.display = "none";
+                    if (data.articles.length === 0) {
+                        error.style.display = "block";
+                        error.textContent = "No news found for the entered location.";
+                        return;
+                    }
+                    data.articles.forEach(article => {
+                        const newsCard = document.createElement("div");
+                        newsCard.className = "news-card";
+                        newsCard.innerHTML = `
+                            <h3>${article.title}</h3>
+                            <p>${article.description || "No description available."}</p>
+                            <a href="${article.url}" target="_blank">Read more</a>
+                        `;
+                        newsContainer.appendChild(newsCard);
+                    });
+                })
+                .catch(err => {
+                    loading.style.display = "none";
+                    error.style.display = "block";
+                    error.textContent = "Error fetching news: " + err.message;
+                });
+        }
+
+        function clearResults() {
+            document.getElementById("newsContainer").innerHTML = "";
+            document.getElementById("location").value = "";
+            document.getElementById("error").style.display = "none";
+        }
+    </script>
+</body>
+</html>
